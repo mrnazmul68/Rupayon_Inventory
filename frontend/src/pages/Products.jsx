@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '../components/ui/Table';
+import { Skeleton } from '../components/ui/Skeleton';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import { getProducts, deleteProduct, updateProduct } from '../services/product.api';
@@ -60,7 +61,35 @@ export const Products = () => {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        <Card className="p-4 md:p-6">
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="w-12 h-12 rounded-lg hidden sm:block" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24 hidden md:block" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-12 hidden sm:block" />
+                <Skeleton className="h-6 w-20 rounded-full hidden md:block" />
+                <div className="flex gap-1 sm:gap-2">
+                  <Skeleton className="w-8 h-8 rounded-md" />
+                  <Skeleton className="w-8 h-8 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

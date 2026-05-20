@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Card } from '../components/ui/Card';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '../components/ui/Table';
+import { Skeleton } from '../components/ui/Skeleton';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 import { getTransactions, deleteTransaction } from '../services/transaction.api';
@@ -64,7 +65,42 @@ export const Transactions = () => {
     return { groupedTransactions: grouped, totals: { totalSales, totalPurchases, totalRevenue } };
   }, [transactions?.data]);
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+        
+        {/* Totals Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="p-6">
+              <Skeleton className="h-4 w-24 mb-2" />
+              <Skeleton className="h-8 w-32" />
+            </Card>
+          ))}
+        </div>
+        
+        {/* Transactions Skeleton */}
+        <Card className="p-6">
+          <Skeleton className="h-6 w-48 mb-4" />
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="w-12 h-12 rounded-lg" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-20" />
+                {currentUser?.role === 'admin' && <Skeleton className="w-8 h-8 rounded-md" />}
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Card } from '../components/ui/Card';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '../components/ui/Table';
+import { Skeleton } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { getUsers, updateUser, deleteUser, approveUser, rejectUser } from '../services/users.api';
@@ -89,7 +90,31 @@ export const Users = () => {
     rejectMutation.mutate(id);
   };
 
-  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Users</h1>
+        <Card className="p-6">
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="w-8 h-8 rounded-md" />
+                  <Skeleton className="w-8 h-8 rounded-md" />
+                  <Skeleton className="w-8 h-8 rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+  
   if (currentUser?.role !== 'admin') {
     return (
       <div className="p-6">
