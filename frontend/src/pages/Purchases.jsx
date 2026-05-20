@@ -1,0 +1,108 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Card } from '../components/ui/Card';
+import { getProducts, createPurchase } from '../services/product.api';
+import { formatCurrency } from '../utils/helpers';
+import { toast } from 'react-toastify';
+
+export const Purchases = () => {
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [supplier, setSupplier] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: products } = useQuery('products', getProducts);
+
+  const mutation = useMutation(createPurchase, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('products');
+      queryClient.invalidateQueries('transactions');
+      toast.success('Purchase recorded successfully');
+      setSelectedProduct('');
+      setQuantity('');
+      setSupplier('');
+    },
+    onError: () => {
+      toast.error('Failed to record purchase');
+    },
+  });
+
+  const product = products?.data?.find(p => p._id === selectedProduct);
+  const total = product ? product.price * Number(quantity) : 0;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedProduct || !quantity) return;
+    mutation.mutate({ productId: selectedProduct, quantity: Number(quantity), supplier });
+  };
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-gray-900">Purchases</h1>
+      
+      <Card className="p-6 max-w-md">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Select Product</label>
+            <select
+              value={selectedProduct}
+              onChange={(e) => setSelectedProduct(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Select a product</option>
+              {products?.data?.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.name} - {formatCurrency(p.price)}
+                </option>
+              ))}
+            </select>
+          </div>
+          {product && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              {product.image ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-16 h-16 object-cover rounded-lg"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-500 text-xs">No img</span>
+                </div>
+              )}
+              <div>
+                <p className="font-medium text-gray-900">{product.name}</p>
+                <p className="text-sm text-gray-500">Stock: {product.stockQuantity}</p>
+              </div>
+            </div>
+          )}
+          <Input
+            label="Quantity"
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            min="1"
+            required
+          />
+          <Input
+            label="Supplier"
+            value={supplier}
+            onChange={(e) => setSupplier(e.target.value)}
+          />
+          {product && quantity > 0 && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">Total Amount</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(total)}</p>
+            </div>
+          )}
+          <Button type="submit" className="w-full" disabled={mutation.isLoading}>
+            {mutation.isLoading ? 'Processing...' : 'Record Purchase'}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+};
