@@ -60,75 +60,75 @@ export const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <Card className="p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Products</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.data?.totalProducts || 0}</p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">{stats?.data?.totalProducts || 0}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Package className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Package className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
             </div>
           </div>
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Stock</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.data?.totalStock || 0}</p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">{stats?.data?.totalStock || 0}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-600" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
             </div>
           </div>
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Low Stock</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.data?.lowStock || 0}</p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">{stats?.data?.lowStock || 0}</p>
             </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-yellow-600" />
             </div>
           </div>
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-purple-600">৳</span>
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span className="text-xl md:text-2xl font-bold text-purple-600">৳</span>
             </div>
           </div>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <Card className="p-4 md:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Trend</h3>
           <SalesChart data={dailySalesData} />
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Categories</h3>
           <ProductChart data={categoryData} />
         </Card>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-4 md:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Transactions</h3>
         <Table>
           <TableHead>
           <TableRow>
             <TableHeader>Product</TableHeader>
             <TableHeader>Type</TableHeader>
-            <TableHeader>Quantity</TableHeader>
+            <TableHeader className="hidden sm:table-cell">Quantity</TableHeader>
             <TableHeader>Total</TableHeader>
-            <TableHeader>User</TableHeader>
-            <TableHeader>Date</TableHeader>
+            <TableHeader className="hidden md:table-cell">User</TableHeader>
+            <TableHeader className="hidden sm:table-cell">Date</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -142,10 +142,10 @@ export const Dashboard = () => {
                   {transaction.type}
                 </span>
               </TableCell>
-              <TableCell>{transaction.quantity}</TableCell>
+              <TableCell className="hidden sm:table-cell">{transaction.quantity}</TableCell>
               <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
-              <TableCell>{transaction.performedByName}</TableCell>
-              <TableCell>{formatDate(transaction.createdAt)}</TableCell>
+              <TableCell className="hidden md:table-cell">{transaction.performedByName}</TableCell>
+              <TableCell className="hidden sm:table-cell">{formatDate(transaction.createdAt)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

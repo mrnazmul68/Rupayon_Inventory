@@ -36,7 +36,7 @@ export const TableRow = ({ children, className = '' }) => {
 
 export const TableCell = ({ children, className = '' }) => {
   return (
-    <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${className}`}>
+    <td className={`px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-900 ${className}`}>
       {children}
     </td>
   );
@@ -44,7 +44,7 @@ export const TableCell = ({ children, className = '' }) => {
 
 export const TableHeader = ({ children, className = '' }) => {
   return (
-    <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}>
+    <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}>
       {children}
     </th>
   );

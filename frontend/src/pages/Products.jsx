@@ -64,7 +64,7 @@ export const Products = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         <Link to="/add-product">
           <Button>
@@ -74,23 +74,23 @@ export const Products = () => {
         </Link>
       </div>
       
-      <Card className="p-6">
+      <Card className="p-4 md:p-6">
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>Image</TableHeader>
+              <TableHeader className="hidden sm:table-cell">Image</TableHeader>
               <TableHeader>Name</TableHeader>
-              <TableHeader>Category</TableHeader>
+              <TableHeader className="hidden md:table-cell">Category</TableHeader>
               <TableHeader>Price</TableHeader>
-              <TableHeader>Stock</TableHeader>
-              <TableHeader>Status</TableHeader>
+              <TableHeader className="hidden sm:table-cell">Stock</TableHeader>
+              <TableHeader className="hidden md:table-cell">Status</TableHeader>
               <TableHeader>Actions</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
             {products?.data?.map((product) => (
               <TableRow key={product._id}>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {product.image ? (
                     <img
                       src={product.image}
@@ -108,16 +108,16 @@ export const Products = () => {
                   )}
                 </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>{product.category}</TableCell>
+                <TableCell className="hidden md:table-cell">{product.category}</TableCell>
                 <TableCell>{formatCurrency(product.price)}</TableCell>
-                <TableCell>{product.stockQuantity}</TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">{product.stockQuantity}</TableCell>
+                <TableCell className="hidden md:table-cell">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
                     {product.status}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2">
                     <Button variant="secondary" size="sm" onClick={() => handleEdit(product)}>
                       <Edit className="w-4 h-4" />
                     </Button>
