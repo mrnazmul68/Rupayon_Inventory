@@ -131,20 +131,20 @@ export const Transactions = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Image</TableHeader>
+                <TableHeader className="hidden sm:table-cell">Image</TableHeader>
                 <TableHeader>Product</TableHeader>
                 <TableHeader>Type</TableHeader>
-                <TableHeader>Quantity</TableHeader>
+                <TableHeader className="hidden md:table-cell">Quantity</TableHeader>
                 <TableHeader>Total</TableHeader>
-                <TableHeader>User</TableHeader>
-                <TableHeader>Date</TableHeader>
+                <TableHeader className="hidden lg:table-cell">User</TableHeader>
+                <TableHeader className="hidden sm:table-cell">Date</TableHeader>
                 {currentUser?.role === 'admin' && <TableHeader>Actions</TableHeader>}
               </TableRow>
             </TableHead>
             <TableBody>
               {dateTransactions.map((transaction) => (
                 <TableRow key={transaction._id}>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {transaction.productId?.image ? (
                       <img
                         src={transaction.productId.image}
@@ -167,10 +167,10 @@ export const Transactions = () => {
                       {transaction.type}
                     </span>
                   </TableCell>
-                  <TableCell>{transaction.quantity}</TableCell>
+                  <TableCell className="hidden md:table-cell">{transaction.quantity}</TableCell>
                   <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
-                  <TableCell>{transaction.performedByName}</TableCell>
-                  <TableCell>{formatDate(transaction.createdAt)}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{transaction.performedByName}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{formatDate(transaction.createdAt)}</TableCell>
                   {currentUser?.role === 'admin' && (
                     <TableCell>
                       <Button 

@@ -148,9 +148,9 @@ export const Users = () => {
           <TableHead>
             <TableRow>
               <TableHeader>Name</TableHeader>
-              <TableHeader>Email</TableHeader>
+              <TableHeader className="hidden md:table-cell">Email</TableHeader>
               <TableHeader>Role</TableHeader>
-              <TableHeader>Status</TableHeader>
+              <TableHeader className="hidden sm:table-cell">Status</TableHeader>
               <TableHeader>Actions</TableHeader>
             </TableRow>
           </TableHead>
@@ -158,7 +158,7 @@ export const Users = () => {
             {users?.data?.map((user) => (
               <TableRow key={user._id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell className="hidden md:table-cell">{user.email}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     user.role === 'admin' 
@@ -170,13 +170,13 @@ export const Users = () => {
                     {user.role}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status || 'approved')}`}>
                     {user.status || 'approved'}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2">
                     {user.status === 'pending' && (
                       <>
                         <Button 

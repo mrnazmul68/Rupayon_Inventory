@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { Button } from '../ui/Button';
 import {
   LayoutDashboard,
   Package,
@@ -12,6 +14,7 @@ import {
   BarChart3,
   Settings,
   X,
+  User,
 } from 'lucide-react';
 
 const menuItems = [
@@ -28,6 +31,8 @@ const menuItems = [
 ];
 
 export const Sidebar = ({ isOpen, onClose }) => {
+  const { user, logout } = useAuth();
+  
   return (
     <>
       <div
@@ -37,13 +42,13 @@ export const Sidebar = ({ isOpen, onClose }) => {
         onClick={onClose}
       />
       <div
-        className={`fixed md:static z-50 w-64 bg-white border-r border-gray-200 min-h-screen transform transition-transform duration-300 ease-in-out ${
+        className={`fixed md:static z-50 w-64 bg-white border-r border-gray-200 min-h-screen transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         <div className="p-6 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">IMS</h1>
+            <h1 className="text-xl font-bold text-[tomato]">RUPAYON</h1>
             <p className="text-sm text-gray-500">Inventory Management</p>
           </div>
           <button
@@ -53,7 +58,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <nav className="px-4">
+        <nav className="px-4 flex-1">
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
@@ -74,6 +79,21 @@ export const Sidebar = ({ isOpen, onClose }) => {
             </NavLink>
           ))}
         </nav>
+        
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+            </div>
+          </div>
+          <Button variant="secondary" size="sm" onClick={logout} className="w-full">
+            Logout
+          </Button>
+        </div>
       </div>
     </>
   );
