@@ -5,16 +5,16 @@ import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '.
 import { Skeleton } from '../components/ui/Skeleton';
 import { SalesChart } from '../components/charts/SalesChart';
 import { ProductChart } from '../components/charts/ProductChart';
-import { getStockStats, getProducts } from '../services/product.api';
-import { getTransactions } from '../services/transaction.api';
+import { getStockStats, getAllProducts } from '../services/product.api';
+import { getAllTransactions } from '../services/transaction.api';
 import { formatCurrency } from '../utils/helpers';
 import { formatDate } from '../utils/formatDate';
 import { Package, TrendingUp, AlertTriangle } from 'lucide-react';
 
 export const Dashboard = () => {
   const { data: stats, isLoading: statsLoading } = useQuery('stockStats', getStockStats);
-  const { data: products, isLoading: productsLoading } = useQuery('products', getProducts);
-  const { data: transactions, isLoading: transactionsLoading } = useQuery('transactions', getTransactions);
+  const { data: products, isLoading: productsLoading } = useQuery('allProducts', getAllProducts);
+  const { data: transactions, isLoading: transactionsLoading } = useQuery('allTransactions', getAllTransactions);
   
   const isLoading = statsLoading || productsLoading || transactionsLoading;
 

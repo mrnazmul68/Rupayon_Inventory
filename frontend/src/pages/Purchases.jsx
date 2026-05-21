@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
-import { getProducts, createPurchase } from '../services/product.api';
+import { getAllProducts, createPurchase } from '../services/product.api';
 import { formatCurrency } from '../utils/helpers';
 import { toast } from 'react-toastify';
 
@@ -13,7 +13,7 @@ export const Purchases = () => {
   const [supplier, setSupplier] = useState('');
   const queryClient = useQueryClient();
 
-  const { data: products } = useQuery('products', getProducts);
+  const { data: products } = useQuery('allProducts', getAllProducts);
 
   const mutation = useMutation(createPurchase, {
     onSuccess: () => {

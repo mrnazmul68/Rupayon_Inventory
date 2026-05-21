@@ -1,11 +1,9 @@
 services:
   - type: web
-    name: inventory-management-system
+    name: inventory-management-backend
     env: node
     plan: starter
-    buildCommand: |
-      cd frontend && npm install && npm run build
-      cd ../backend && npm install
+    buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
       - key: PORT

@@ -3,9 +3,16 @@ import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import * as authService from "../services/auth.service.js";
 import User from "../models/user.model.js";
+import { createNotification } from "./notification.controller.js";
 
 export const register = asyncHandler(async (req, res) => {
   const user = await authService.registerUser(req.body);
+  
+  await createNotification(
+    'user_created',
+    `${user.name} registered for an account`,
+    { userId: user._id, userName: user.name, userEmail: user.email }
+  );
   
   const responseData = {
     user: {

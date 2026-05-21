@@ -1,8 +1,17 @@
 import Product from "../models/product.model.js";
 import ApiError from "../utils/ApiError.js";
 
-export const getAllProducts = async () => {
-  return await Product.find().sort({ createdAt: -1 });
+export const getAllProducts = async (query = {}, skip = 0, limit = 10) => {
+  const queryBuilder = Product.find(query).sort({ createdAt: -1 });
+  
+  if (skip > 0) queryBuilder.skip(skip);
+  if (limit > 0) queryBuilder.limit(limit);
+  
+  return await queryBuilder;
+};
+
+export const countProducts = async (query = {}) => {
+  return await Product.countDocuments(query);
 };
 
 export const getProductById = async (id) => {

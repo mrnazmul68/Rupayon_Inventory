@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
-import { getProducts, createSale } from '../services/product.api';
+import { getAllProducts, createSale } from '../services/product.api';
 import { formatCurrency } from '../utils/helpers';
 import { toast } from 'react-toastify';
 
@@ -12,7 +12,7 @@ export const Sales = () => {
   const [quantity, setQuantity] = useState('');
   const queryClient = useQueryClient();
 
-  const { data: products } = useQuery('products', getProducts);
+  const { data: products } = useQuery('allProducts', getAllProducts);
 
   const mutation = useMutation(createSale, {
     onSuccess: () => {

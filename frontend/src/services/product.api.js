@@ -1,7 +1,14 @@
 import api from './api';
 
-export const getProducts = async () => {
-  const response = await api.get('/products');
+export const getProducts = async ({ page = 1, limit = 10, search = '' } = {}) => {
+  const response = await api.get('/products', {
+    params: { page, limit, search }
+  });
+  return response.data;
+};
+
+export const getAllProducts = async () => {
+  const response = await api.get('/products/all');
   return response.data;
 };
 

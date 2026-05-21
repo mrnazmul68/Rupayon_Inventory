@@ -1,16 +1,56 @@
 import asyncHandler from "../middlewares/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import Transaction from "../models/transaction.model.js";
+import { createNotification } from "./notification.controller.js";
 
-export const getTransactions = asyncHandler(async (req, res) => {
+export const getAllTransactions = asyncHandler(async (req, res) => {
   const transactions = await Transaction.find()
     .sort({ createdAt: -1 })
     .populate("productId", "name price image")
     .populate("performedBy", "name email");
+  
   res.status(200).json(new ApiResponse(200, transactions, "Transactions retrieved successfully"));
 });
 
+export const getTransactions = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || '';
+  const skip = (page - 1) * limit;
+  
+  const query = search 
+    ? { productName: { $regex: search, $options: 'i' } } 
+    : {};
+  
+  const transactions = await Transaction.find(query)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate("productId", "name price image")
+    .populate("performedBy", "name email");
+  
+  const total = await Transaction.countDocuments(query);
+  
+  res.status(200).json(new ApiResponse(200, {
+    data: transactions,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit)
+    }
+  }, "Transactions retrieved successfully"));
+});
+
 export const deleteTransaction = asyncHandler(async (req, res) => {
+  const transaction = await Transaction.findById(req.params.id);
   await Transaction.findByIdAndDelete(req.params.id);
+  
+  await createNotification(
+    'transaction_deleted',
+    `${req.user.name} deleted transaction for ${transaction.productName}`,
+    { transactionId: transaction._id, productName: transaction.productName, type: transaction.type }
+  );
+  
   res.status(200).json(new ApiResponse(200, null, "Transaction deleted successfully"));
 });

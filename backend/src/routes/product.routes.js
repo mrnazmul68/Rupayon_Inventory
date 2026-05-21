@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getAllProducts,
   getProducts,
   getProduct,
   createProduct,
@@ -15,6 +16,7 @@ import { upload } from "../config/cloudinary.js";
 
 const router = express.Router();
 
+router.get("/all", protect, getAllProducts);
 router.get("/", protect, getProducts);
 router.get("/stats", protect, getStockStats);
 router.get("/:id", protect, getProduct);
