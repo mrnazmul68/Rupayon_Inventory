@@ -3,9 +3,18 @@ services:
     name: inventory-management-system
     env: node
     plan: starter
+    rootDir: .
     buildCommand: |
-      cd frontend && npm install && npm run build
-      cd ../backend && npm install
+      echo "=== Building frontend ==="
+      cd frontend
+      npm install
+      npm run build
+      echo "=== Frontend build complete ==="
+      ls -la dist/
+      echo "=== Installing backend dependencies ==="
+      cd ../backend
+      npm install
+      echo "=== Build complete ==="
     startCommand: cd backend && npm start
     envVars:
       - key: PORT
