@@ -68,10 +68,10 @@ if (process.env.NODE_ENV === "production") {
     });
   } else {
     console.warn("Frontend dist directory not found, serving API only");
-    app.get("*", (req, res) => {
+    app.get("/", (req, res) => {
       res.status(200).json({
         success: true,
-        message: "Inventory Management System API - Frontend not deployed",
+        message: "Inventory Management System API is running",
         distPath: distPath
       });
     });
