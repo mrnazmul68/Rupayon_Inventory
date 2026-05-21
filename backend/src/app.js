@@ -39,10 +39,20 @@ app.get("/api/health", (req, res) => {
 });
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../../frontend/dist")));
+  const distPath = path.resolve(__dirname, "../../frontend/dist");
+  const indexPath = path.resolve(distPath, "index.html");
+  
+  app.use(express.static(distPath));
   
   app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../../frontend/dist/index.html"));
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        res.status(404).json({
+          success: false,
+          message: "Page not found"
+        });
+      }
+    });
   });
 } else {
   app.get("/", (req, res) => {
