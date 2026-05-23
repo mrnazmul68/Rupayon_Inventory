@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 export const Sales = () => {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [totalPrice, setTotalPrice] = useState('');
   const queryClient = useQueryClient();
 
   const { data: products } = useQuery('allProducts', getAllProducts);
@@ -21,6 +22,7 @@ export const Sales = () => {
       toast.success('Sale recorded successfully');
       setSelectedProduct('');
       setQuantity('');
+      setTotalPrice('');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to record sale');
@@ -28,12 +30,11 @@ export const Sales = () => {
   });
 
   const product = products?.data?.find(p => p._id === selectedProduct);
-  const total = product ? product.price * Number(quantity) : 0;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedProduct || !quantity) return;
-    mutation.mutate({ productId: selectedProduct, quantity: Number(quantity) });
+    if (!selectedProduct || !quantity || !totalPrice) return;
+    mutation.mutate({ productId: selectedProduct, quantity: Number(quantity), totalPrice: Number(totalPrice) });
   };
 
   return (
@@ -53,7 +54,7 @@ export const Sales = () => {
               <option value="">Select a product</option>
               {products?.data?.map((p) => (
                 <option key={p._id} value={p._id}>
-                  {p.name} - {formatCurrency(p.price)} (Stock: {p.stockQuantity})
+                  {p.name} (Stock: {p.stockQuantity})
                 </option>
               ))}
             </select>
@@ -85,12 +86,14 @@ export const Sales = () => {
             min="1"
             required
           />
-          {product && quantity > 0 && (
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">Total Amount</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(total)}</p>
-            </div>
-          )}
+          <Input
+            label="Total Amount"
+            type="number"
+            value={totalPrice}
+            onChange={(e) => setTotalPrice(e.target.value)}
+            min="0"
+            required
+          />
           <Button type="submit" className="w-full" disabled={mutation.isLoading}>
             {mutation.isLoading ? 'Processing...' : 'Record Sale'}
           </Button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -7,9 +7,10 @@ import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '.
 import { Skeleton } from '../components/ui/Skeleton';
 import { Pagination } from '../components/ui/Pagination';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Input } from '../components/ui/Input';
 import { getProducts, deleteProduct, updateProduct } from '../services/product.api';
-import { getStatusColor, formatCurrency } from '../utils/helpers';
+import { getStatusColor } from '../utils/helpers';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useSearch } from '../components/layout/DashboardLayout';
@@ -17,18 +18,23 @@ import { useSearch } from '../components/layout/DashboardLayout';
 export const Products = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [deletingProductId, setDeletingProductId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const { searchQuery } = useSearch();
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
   
   const { data: products, isLoading } = useQuery(
     ['products', currentPage, searchQuery],
     () => getProducts({ page: currentPage, limit: 10, search: searchQuery }),
     {
-      keepPreviousData: true,
-      onSuccess: () => setCurrentPage(1)
+      keepPreviousData: true
     }
   );
 
@@ -67,8 +73,15 @@ export const Products = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteMutation.mutate(id);
+    setDeletingProductId(id);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (deletingProductId) {
+      deleteMutation.mutate(deletingProductId);
+      setConfirmModalOpen(false);
+      setDeletingProductId(null);
     }
   };
 
@@ -123,7 +136,6 @@ export const Products = () => {
                 <TableHeader>Image</TableHeader>
                 <TableHeader>Name</TableHeader>
                 <TableHeader>Category</TableHeader>
-                <TableHeader>Price</TableHeader>
                 <TableHeader>Stock</TableHeader>
                 <TableHeader>Status</TableHeader>
                 <TableHeader>Actions</TableHeader>
@@ -137,6 +149,7 @@ export const Products = () => {
                       <img
                         src={product.image}
                         alt={product.name}
+                        loading="lazy"
                         className="w-12 h-12 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => {
                           setSelectedImage(product.image);
@@ -151,7 +164,6 @@ export const Products = () => {
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
-                  <TableCell>{formatCurrency(product.price)}</TableCell>
                   <TableCell>{product.stockQuantity}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
@@ -183,6 +195,7 @@ export const Products = () => {
                   <img
                     src={product.image}
                     alt={product.name}
+                    loading="lazy"
                     className="w-14 h-14 rounded-lg object-cover cursor-pointer"
                     onClick={() => {
                       setSelectedImage(product.image);
@@ -202,10 +215,6 @@ export const Products = () => {
               </div>
 
               <div className="space-y-2 pt-2 border-t border-gray-100 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Price</span>
-                  <span className="font-bold text-gray-900">{formatCurrency(product.price)}</span>
-                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500">Stock</span>
                   <span className="font-medium text-gray-900">{product.stockQuantity}</span>
@@ -259,13 +268,6 @@ export const Products = () => {
               required
             />
             <Input
-              label="Price"
-              type="number"
-              value={editingProduct.price}
-              onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-              required
-            />
-            <Input
               label="Stock Quantity"
               type="number"
               value={editingProduct.stockQuantity}
@@ -302,6 +304,20 @@ export const Products = () => {
           />
         )}
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setDeletingProductId(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Product"
+        message="Are you sure you want to delete this product?"
+        confirmText="Delete"
+        confirmVariant="danger"
+        isLoading={deleteMutation.isLoading}
+      />
     </div>
   );
 };

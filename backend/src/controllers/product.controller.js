@@ -40,19 +40,24 @@ export const getProduct = asyncHandler(async (req, res) => {
 });
 
 export const createProduct = asyncHandler(async (req, res) => {
-  const productData = { ...req.body };
-  if (req.file) {
-    productData.image = req.file.path;
+  try {
+    const productData = { ...req.body };
+    if (req.file) {
+      productData.image = req.file.path;
+    }
+    const product = await productService.createProduct(productData);
+    
+    await createNotification(
+      'product_created',
+      `${req.user.name} created product: ${product.name}`,
+      { productId: product._id, productName: product.name }
+    );
+    
+    res.status(201).json(new ApiResponse(201, product, "Product created successfully"));
+  } catch (error) {
+    console.error("Error creating product:", error);
+    throw error;
   }
-  const product = await productService.createProduct(productData);
-  
-  await createNotification(
-    'product_created',
-    `${req.user.name} created product: ${product.name}`,
-    { productId: product._id, productName: product.name }
-  );
-  
-  res.status(201).json(new ApiResponse(201, product, "Product created successfully"));
 });
 
 export const updateProduct = asyncHandler(async (req, res) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Card } from '../components/ui/Card';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '../components/ui/Table';
@@ -6,6 +6,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { Pagination } from '../components/ui/Pagination';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { getUsers, updateUser, deleteUser, approveUser, rejectUser } from '../services/users.api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -14,7 +15,9 @@ import { useSearch } from '../components/layout/DashboardLayout';
 
 export const Users = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
@@ -24,8 +27,7 @@ export const Users = () => {
     ['users', currentPage, searchQuery],
     () => getUsers({ page: currentPage, limit: 10, search: searchQuery }),
     {
-      keepPreviousData: true,
-      onSuccess: () => setCurrentPage(1)
+      keepPreviousData: true
     }
   );
 
@@ -88,8 +90,15 @@ export const Users = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteMutation.mutate(id);
+    setDeletingUserId(id);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (deletingUserId) {
+      deleteMutation.mutate(deletingUserId);
+      setConfirmModalOpen(false);
+      setDeletingUserId(null);
     }
   };
 
@@ -105,18 +114,18 @@ export const Users = () => {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-4">
                 <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-6 w-20 rounded-full" />
-                <Skeleton className="h-6 w-24 rounded-full" />
-                <div className="flex gap-2">
-                  <Skeleton className="w-8 h-8 rounded-md" />
-                  <Skeleton className="w-8 h-8 rounded-md" />
-                  <Skeleton className="w-8 h-8 rounded-md" />
+                <Skeleton className="h-4 w-48 hidden md:block" />
+                <Skeleton className="h-6 w-20 rounded-full hidden sm:block" />
+                <Skeleton className="h-6 w-24 rounded-full hidden sm:block" />
+                <div className="flex gap-1 sm:gap-2">
+                  <Skeleton className="w-8 h-8 rounded-md hidden sm:block" />
+                  <Skeleton className="w-8 h-8 rounded-md hidden sm:block" />
+                  <Skeleton className="w-8 h-8 rounded-md hidden sm:block" />
                 </div>
               </div>
             ))}
@@ -354,6 +363,20 @@ export const Users = () => {
           </form>
         )}
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setDeletingUserId(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete User"
+        message="Are you sure you want to delete this user?"
+        confirmText="Delete"
+        confirmVariant="danger"
+        isLoading={deleteMutation.isLoading}
+      />
     </div>
   );
 };

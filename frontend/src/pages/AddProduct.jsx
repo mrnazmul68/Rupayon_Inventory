@@ -11,7 +11,6 @@ import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 export const AddProduct = () => {
   const [formData, setFormData] = useState({
     name: '',
-    price: '',
     stockQuantity: '',
     category: '',
     supplier: '',
@@ -48,7 +47,6 @@ export const AddProduct = () => {
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
     formDataToSend.append('category', formData.category);
-    formDataToSend.append('price', Number(formData.price));
     formDataToSend.append('stockQuantity', Number(formData.stockQuantity));
     formDataToSend.append('supplier', formData.supplier || '');
     if (imageFile) {
@@ -86,14 +84,7 @@ export const AddProduct = () => {
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             required
           />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Price"
-              type="number"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              required
-            />
+          <div className="grid grid-cols-1 gap-4">
             <Input
               label="Stock Quantity"
               type="number"

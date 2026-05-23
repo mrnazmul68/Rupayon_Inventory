@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Card } from '../components/ui/Card';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '../components/ui/Table';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Pagination } from '../components/ui/Pagination';
 import { Modal } from '../components/ui/Modal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Button } from '../components/ui/Button';
 import { getTransactions, deleteTransaction } from '../services/transaction.api';
 import { formatCurrency, getTransactionTypeColor } from '../utils/helpers';
@@ -16,18 +17,23 @@ import { useSearch } from '../components/layout/DashboardLayout';
 
 export const Transactions = () => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const { searchQuery } = useSearch();
   
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+  
   const { data: transactions, isLoading } = useQuery(
     ['transactions', currentPage, searchQuery],
     () => getTransactions({ page: currentPage, limit: 10, search: searchQuery }),
     {
-      keepPreviousData: true,
-      onSuccess: () => setCurrentPage(1)
+      keepPreviousData: true
     }
   );
 
@@ -42,8 +48,15 @@ export const Transactions = () => {
   });
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
-      deleteMutation.mutate(id);
+    setDeletingTransactionId(id);
+    setConfirmModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (deletingTransactionId) {
+      deleteMutation.mutate(deletingTransactionId);
+      setConfirmModalOpen(false);
+      setDeletingTransactionId(null);
     }
   };
 
@@ -84,7 +97,7 @@ export const Transactions = () => {
         {/* Totals Cards Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="p-6">
+            <Card key={i} className="p-4 md:p-6">
               <Skeleton className="h-4 w-24 mb-2" />
               <Skeleton className="h-8 w-32" />
             </Card>
@@ -92,18 +105,18 @@ export const Transactions = () => {
         </div>
         
         {/* Transactions Skeleton */}
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <Skeleton className="h-6 w-48 mb-4" />
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-center gap-4">
-                <Skeleton className="w-12 h-12 rounded-lg" />
+                <Skeleton className="w-12 h-12 rounded-lg hidden sm:block" />
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="h-6 w-16 rounded-full" />
-                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-12 hidden sm:block" />
                 <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-24 hidden md:block" />
+                <Skeleton className="h-4 w-20 hidden sm:block" />
                 {currentUser?.role === 'admin' && <Skeleton className="w-8 h-8 rounded-md" />}
               </div>
             ))}
@@ -161,14 +174,15 @@ export const Transactions = () => {
                     <TableCell>
                       {transaction.productId?.image ? (
                         <img
-                          src={transaction.productId.image}
-                          alt={transaction.productName}
-                          className="w-12 h-12 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => {
-                            setSelectedImage(transaction.productId.image);
-                            setImageModalOpen(true);
-                          }}
-                        />
+                        src={transaction.productId.image}
+                        alt={transaction.productName}
+                        loading="lazy"
+                        className="w-12 h-12 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          setSelectedImage(transaction.productId.image);
+                          setImageModalOpen(true);
+                        }}
+                      />
                       ) : (
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
                           <span className="text-gray-400 text-xs">No img</span>
@@ -210,14 +224,15 @@ export const Transactions = () => {
                 <div className="flex gap-3 items-center">
                   {transaction.productId?.image ? (
                     <img
-                      src={transaction.productId.image}
-                      alt={transaction.productName}
-                      className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-                      onClick={() => {
-                        setSelectedImage(transaction.productId.image);
-                        setImageModalOpen(true);
-                      }}
-                    />
+                    src={transaction.productId.image}
+                    alt={transaction.productName}
+                    loading="lazy"
+                    className="w-14 h-14 rounded-lg object-cover cursor-pointer"
+                    onClick={() => {
+                      setSelectedImage(transaction.productId.image);
+                      setImageModalOpen(true);
+                    }}
+                  />
                   ) : (
                     <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center">
                       <span className="text-gray-400 text-xs">No img</span>
@@ -288,6 +303,20 @@ export const Transactions = () => {
           />
         )}
       </Modal>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setDeletingTransactionId(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction?"
+        confirmText="Delete"
+        confirmVariant="danger"
+        isLoading={deleteMutation.isLoading}
+      />
     </div>
   );
 };

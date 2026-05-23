@@ -1,4 +1,5 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 export const Button = ({ 
   children, 
@@ -6,6 +7,7 @@ export const Button = ({
   size = 'md', 
   className = '', 
   disabled, 
+  isLoading, 
   ...props 
 }) => {
   const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
@@ -26,9 +28,10 @@ export const Button = ({
   return (
     <button
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
-      disabled={disabled}
+      disabled={disabled || isLoading}
       {...props}
     >
+      {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
       {children}
     </button>
   );

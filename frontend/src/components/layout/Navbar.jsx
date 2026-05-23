@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from './DashboardLayout';
 import { markAsRead, markAllAsRead } from '../../services/notification.api';
@@ -92,9 +92,14 @@ export const Navbar = ({ onMenuClick, searchQuery, onSearchChange }) => {
                 {unreadCount > 0 && (
                   <button 
                     onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    disabled={markAllAsReadMutation.isLoading}
                   >
-                    Mark all as read
+                    {markAllAsReadMutation.isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Mark all as read'
+                    )}
                   </button>
                 )}
               </div>
@@ -113,7 +118,12 @@ export const Navbar = ({ onMenuClick, searchQuery, onSearchChange }) => {
                         !notification.readBy.includes(user._id) ? 'bg-blue-50' : ''
                       }`}
                     >
-                      <p className="text-sm text-gray-900">{notification.message}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-900">{notification.message}</p>
+                        {!notification.readBy.includes(user._id) && markAsReadMutation.isLoading && markAsReadMutation.variables === notification._id && (
+                          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {formatDate(notification.createdAt)}
                       </p>

@@ -12,6 +12,11 @@ export const getAllTransactions = async () => {
   return response.data;
 };
 
+export const getDailyStats = async () => {
+  const response = await api.get('/transactions/daily-stats');
+  return response.data;
+};
+
 export const deleteTransaction = async (id) => {
   const response = await api.delete(`/transactions/${id}`);
   return response.data;

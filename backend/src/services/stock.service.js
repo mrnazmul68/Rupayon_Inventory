@@ -3,7 +3,7 @@ import Transaction from "../models/transaction.model.js";
 import ApiError from "../utils/ApiError.js";
 
 export const createSale = async (saleData, user) => {
-  const { productId, quantity } = saleData;
+  const { productId, quantity, totalPrice } = saleData;
   const product = await Product.findById(productId);
   if (!product) {
     throw new ApiError(404, "Product not found");
@@ -16,7 +16,6 @@ export const createSale = async (saleData, user) => {
   product.stockQuantity -= quantity;
   await product.save();
 
-  const totalPrice = product.price * quantity;
   const transaction = await Transaction.create({
     productId,
     productName: product.name,
@@ -31,7 +30,7 @@ export const createSale = async (saleData, user) => {
 };
 
 export const createPurchase = async (purchaseData, user) => {
-  const { productId, quantity, supplier } = purchaseData;
+  const { productId, quantity, supplier, totalPrice } = purchaseData;
   const product = await Product.findById(productId);
   if (!product) {
     throw new ApiError(404, "Product not found");
@@ -40,7 +39,6 @@ export const createPurchase = async (purchaseData, user) => {
   product.stockQuantity += quantity;
   await product.save();
 
-  const totalPrice = product.price * quantity;
   const transaction = await Transaction.create({
     productId,
     productName: product.name,
