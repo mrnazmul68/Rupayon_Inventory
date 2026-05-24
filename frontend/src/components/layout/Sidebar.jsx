@@ -15,10 +15,12 @@ import {
   Settings,
   X,
   User,
+  Layers,
 } from 'lucide-react';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+  { icon: Layers, label: 'Categories', path: '/categories' },
   { icon: Package, label: 'Products', path: '/products' },
   { icon: PlusCircle, label: 'Add Product', path: '/add-product' },
   { icon: Warehouse, label: 'Inventory', path: '/inventory' },

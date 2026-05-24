@@ -4,10 +4,12 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { getAllProducts, createPurchase } from '../services/product.api';
+import { getCategories } from '../services/category.api';
 import { formatCurrency } from '../utils/helpers';
 import { toast } from 'react-toastify';
 
 export const Purchases = () => {
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
   const [supplier, setSupplier] = useState('');
@@ -15,12 +17,18 @@ export const Purchases = () => {
   const queryClient = useQueryClient();
 
   const { data: products } = useQuery('allProducts', getAllProducts);
+  const { data: categories } = useQuery('categories', getCategories);
+  
+  const filteredProducts = selectedCategory 
+    ? products?.data?.filter(p => p.category === selectedCategory) 
+    : products?.data;
 
   const mutation = useMutation(createPurchase, {
     onSuccess: () => {
       queryClient.invalidateQueries('products');
       queryClient.invalidateQueries('transactions');
       toast.success('Purchase recorded successfully');
+      setSelectedCategory('');
       setSelectedProduct('');
       setQuantity('');
       setSupplier('');
@@ -31,7 +39,7 @@ export const Purchases = () => {
     },
   });
 
-  const product = products?.data?.find(p => p._id === selectedProduct);
+  const product = filteredProducts?.find(p => p._id === selectedProduct);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -46,21 +54,42 @@ export const Purchases = () => {
       <Card className="p-6 max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Select Product</label>
+            <label className="block text-sm font-medium text-gray-700">Select Category</label>
             <select
-              value={selectedProduct}
-              onChange={(e) => setSelectedProduct(e.target.value)}
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setSelectedProduct('');
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="">Select a product</option>
-              {products?.data?.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name}
+              <option value="">Select a category</option>
+              {categories?.data?.map((c) => (
+                <option key={c._id} value={c.name}>
+                  {c.name}
                 </option>
               ))}
             </select>
           </div>
+          {selectedCategory && (
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">Select Product</label>
+              <select
+                value={selectedProduct}
+                onChange={(e) => setSelectedProduct(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Select a product</option>
+                {filteredProducts?.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {product && (
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               {product.image ? (

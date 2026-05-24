@@ -29,7 +29,7 @@ export const Transactions = () => {
     setCurrentPage(1);
   }, [searchQuery]);
   
-  const { data: transactions, isLoading } = useQuery(
+  const { data: transactions, isLoading, isFetching } = useQuery(
     ['transactions', currentPage, searchQuery],
     () => getTransactions({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -60,16 +60,13 @@ export const Transactions = () => {
     }
   };
 
-  // Group transactions by date and calculate totals
-  const { groupedTransactions, totals } = useMemo(() => {
+  // Group transactions by date
+  const groupedTransactions = useMemo(() => {
     if (!transactions?.data?.data) {
-      return { groupedTransactions: {}, totals: { totalSales: 0, totalPurchases: 0, totalRevenue: 0 } };
+      return {};
     }
 
     const grouped = {};
-    let totalSales = 0;
-    let totalPurchases = 0;
-    let totalRevenue = 0;
 
     transactions.data.data.forEach((transaction) => {
       const dateKey = new Date(transaction.createdAt).toDateString();
@@ -77,17 +74,12 @@ export const Transactions = () => {
         grouped[dateKey] = [];
       }
       grouped[dateKey].push(transaction);
-
-      if (transaction.type === 'sale') {
-        totalSales += transaction.totalPrice;
-        totalRevenue += transaction.totalPrice;
-      } else {
-        totalPurchases += transaction.totalPrice;
-      }
     });
 
-    return { groupedTransactions: grouped, totals: { totalSales, totalPurchases, totalRevenue } };
+    return grouped;
   }, [transactions?.data?.data]);
+  
+  const totals = transactions?.data?.totals || { totalSales: 0, totalPurchases: 0, totalRevenue: 0 };
 
   if (isLoading) {
     return (
@@ -147,60 +139,134 @@ export const Transactions = () => {
       </div>
 
       {/* Grouped Transactions */}
-      {Object.entries(groupedTransactions).map(([dateKey, dateTransactions]) => (
-        <Card key={dateKey} className="p-4 md:p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {new Date(dateKey).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </h3>
-          
-          {/* Desktop Table */}
-          <div className="hidden md:block">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Image</TableHeader>
-                  <TableHeader>Product</TableHeader>
-                  <TableHeader>Type</TableHeader>
-                  <TableHeader>Quantity</TableHeader>
-                  <TableHeader>Total</TableHeader>
-                  <TableHeader>User</TableHeader>
-                  <TableHeader>Date</TableHeader>
-                  {currentUser?.role === 'admin' && <TableHeader>Actions</TableHeader>}
-                </TableRow>
-              </TableHead>
-              <TableBody>
+      <div className="relative">
+        {isFetching && !isLoading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+              <span className="text-sm text-gray-600">Loading...</span>
+            </div>
+          </div>
+        )}
+        
+        <div className={`transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+          {Object.entries(groupedTransactions).map(([dateKey, dateTransactions]) => (
+            <Card key={dateKey} className="p-4 md:p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                {new Date(dateKey).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </h3>
+              
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeader>Image</TableHeader>
+                      <TableHeader>Product</TableHeader>
+                      <TableHeader>Category</TableHeader>
+                      <TableHeader>Type</TableHeader>
+                      <TableHeader>Quantity</TableHeader>
+                      <TableHeader>Total</TableHeader>
+                      <TableHeader>User</TableHeader>
+                      <TableHeader>Date</TableHeader>
+                      {currentUser?.role === 'admin' && <TableHeader>Actions</TableHeader>}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {dateTransactions.map((transaction) => (
+                      <TableRow key={transaction._id}>
+                        <TableCell>
+                          {transaction.productId?.image ? (
+                            <img
+                            src={transaction.productId.image}
+                            alt={transaction.productName}
+                            loading="lazy"
+                            className="w-12 h-12 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => {
+                              setSelectedImage(transaction.productId.image);
+                              setImageModalOpen(true);
+                            }}
+                          />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <span className="text-gray-400 text-xs">No img</span>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{transaction.productName}</TableCell>
+                        <TableCell>
+                          {transaction.category ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {transaction.category}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.type)}`}>
+                            {transaction.type}
+                          </span>
+                        </TableCell>
+                        <TableCell>{transaction.quantity}</TableCell>
+                        <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
+                        <TableCell>{transaction.performedByName}</TableCell>
+                        <TableCell>{formatDate(transaction.createdAt)}</TableCell>
+                        {currentUser?.role === 'admin' && (
+                          <TableCell>
+                            <Button 
+                              variant="danger" 
+                              size="sm" 
+                              onClick={() => handleDelete(transaction._id)}
+                              disabled={deleteMutation.isLoading}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-4">
                 {dateTransactions.map((transaction) => (
-                  <TableRow key={transaction._id}>
-                    <TableCell>
+                  <Card key={transaction._id} className="p-4 space-y-3">
+                    <div className="flex gap-3 items-center">
                       {transaction.productId?.image ? (
                         <img
                         src={transaction.productId.image}
                         alt={transaction.productName}
                         loading="lazy"
-                        className="w-12 h-12 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                        className="w-14 h-14 rounded-lg object-cover cursor-pointer"
                         onClick={() => {
                           setSelectedImage(transaction.productId.image);
                           setImageModalOpen(true);
                         }}
                       />
                       ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center">
                           <span className="text-gray-400 text-xs">No img</span>
                         </div>
                       )}
-                    </TableCell>
-                    <TableCell className="font-medium">{transaction.productName}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.type)}`}>
-                        {transaction.type}
-                      </span>
-                    </TableCell>
-                    <TableCell>{transaction.quantity}</TableCell>
-                    <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
-                    <TableCell>{transaction.performedByName}</TableCell>
-                    <TableCell>{formatDate(transaction.createdAt)}</TableCell>
-                    {currentUser?.role === 'admin' && (
-                      <TableCell>
+
+                      <div className="flex-1">
+                        <h2 className="font-semibold">{transaction.productName}</h2>
+                        <div className="flex gap-2 mt-1">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.type)}`}>
+                            {transaction.type}
+                          </span>
+                          {transaction.category && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {transaction.category}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {currentUser?.role === 'admin' && (
                         <Button 
                           variant="danger" 
                           size="sm" 
@@ -209,84 +275,41 @@ export const Transactions = () => {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-4">
-            {dateTransactions.map((transaction) => (
-              <Card key={transaction._id} className="p-4 space-y-3">
-                <div className="flex gap-3 items-center">
-                  {transaction.productId?.image ? (
-                    <img
-                    src={transaction.productId.image}
-                    alt={transaction.productName}
-                    loading="lazy"
-                    className="w-14 h-14 rounded-lg object-cover cursor-pointer"
-                    onClick={() => {
-                      setSelectedImage(transaction.productId.image);
-                      setImageModalOpen(true);
-                    }}
-                  />
-                  ) : (
-                    <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">No img</span>
+                      )}
                     </div>
-                  )}
 
-                  <div className="flex-1">
-                    <h2 className="font-semibold">{transaction.productName}</h2>
-                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.type)}`}>
-                      {transaction.type}
-                    </span>
-                  </div>
-
-                  {currentUser?.role === 'admin' && (
-                    <Button 
-                      variant="danger" 
-                      size="sm" 
-                      onClick={() => handleDelete(transaction._id)}
-                      disabled={deleteMutation.isLoading}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-y-2 pt-2 border-t border-gray-100 text-sm">
-                  <div>
-                    <span className="text-gray-500 block text-xs">Quantity</span>
-                    <span className="font-medium text-gray-900">{transaction.quantity}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block text-xs">Total</span>
-                    <span className="font-bold text-gray-900">{formatCurrency(transaction.totalPrice)}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block text-xs">User</span>
-                    <span className="font-medium text-gray-900">{transaction.performedByName}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block text-xs">Date</span>
-                    <span className="font-medium text-gray-900">{formatDate(transaction.createdAt)}</span>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </Card>
-      ))}
+                    <div className="grid grid-cols-2 gap-y-2 pt-2 border-t border-gray-100 text-sm">
+                      <div>
+                        <span className="text-gray-500 block text-xs">Quantity</span>
+                        <span className="font-medium text-gray-900">{transaction.quantity}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block text-xs">Total</span>
+                        <span className="font-bold text-gray-900">{formatCurrency(transaction.totalPrice)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block text-xs">User</span>
+                        <span className="font-medium text-gray-900">{transaction.performedByName}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block text-xs">Date</span>
+                        <span className="font-medium text-gray-900">{formatDate(transaction.createdAt)}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       {transactions?.data?.pagination?.pages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={transactions.data.pagination.pages}
           onPageChange={setCurrentPage}
+          isLoading={isFetching || isLoading}
         />
       )}
 

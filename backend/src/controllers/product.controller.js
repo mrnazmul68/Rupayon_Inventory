@@ -14,11 +14,18 @@ export const getProducts = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || '';
+  const category = req.query.category || '';
   const skip = (page - 1) * limit;
   
-  const query = search 
-    ? { name: { $regex: search, $options: 'i' } } 
-    : {};
+  const query = {};
+  
+  if (search) {
+    query.name = { $regex: search, $options: 'i' };
+  }
+  
+  if (category) {
+    query.category = category;
+  }
   
   const products = await productService.getAllProducts(query, skip, limit);
   const total = await productService.countProducts(query);
@@ -62,7 +69,18 @@ export const createProduct = asyncHandler(async (req, res) => {
 
 export const updateProduct = asyncHandler(async (req, res) => {
   const productData = { ...req.body };
-  if (req.file) {
+  
+  // Handle image removal
+  if (productData.image === '') {
+    // Get old product to delete old image
+    const oldProduct = await productService.getProductById(req.params.id);
+    if (oldProduct && oldProduct.image) {
+      const publicId = oldProduct.image.split("/").pop().split(".")[0];
+      const folder = "inventory-products";
+      await cloudinary.uploader.destroy(`${folder}/${publicId}`);
+    }
+    productData.image = '';
+  } else if (req.file) {
     // Get old product to delete old image
     const oldProduct = await productService.getProductById(req.params.id);
     if (oldProduct && oldProduct.image) {
@@ -72,6 +90,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
     productData.image = req.file.path;
   }
+  
   const product = await productService.updateProduct(req.params.id, productData);
   
   await createNotification(

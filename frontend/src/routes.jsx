@@ -17,6 +17,7 @@ import { Transactions } from './pages/Transactions';
 import { Users } from './pages/Users';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
+import { Categories } from './pages/Categories';
 
 const queryClient = new QueryClient();
 
@@ -106,6 +107,20 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <DashboardLayout>
               <Reports />
+            </DashboardLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/categories" element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Categories />
+            </DashboardLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/categories/:categoryName" element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Categories />
             </DashboardLayout>
           </ProtectedRoute>
         } />

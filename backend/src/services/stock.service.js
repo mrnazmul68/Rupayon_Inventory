@@ -19,6 +19,7 @@ export const createSale = async (saleData, user) => {
   const transaction = await Transaction.create({
     productId,
     productName: product.name,
+    category: product.category,
     type: "sale",
     quantity,
     totalPrice,
@@ -42,6 +43,7 @@ export const createPurchase = async (purchaseData, user) => {
   const transaction = await Transaction.create({
     productId,
     productName: product.name,
+    category: product.category,
     type: "purchase",
     quantity,
     totalPrice,

@@ -31,6 +31,20 @@ export const getTransactions = asyncHandler(async (req, res) => {
   
   const total = await Transaction.countDocuments(query);
   
+  const allTransactions = await Transaction.find(query);
+  let totalSales = 0;
+  let totalPurchases = 0;
+  let totalRevenue = 0;
+  
+  allTransactions.forEach(transaction => {
+    if (transaction.type === 'sale') {
+      totalSales += transaction.totalPrice;
+      totalRevenue += transaction.totalPrice;
+    } else if (transaction.type === 'purchase') {
+      totalPurchases += transaction.totalPrice;
+    }
+  });
+  
   res.status(200).json(new ApiResponse(200, {
     data: transactions,
     pagination: {
@@ -38,6 +52,11 @@ export const getTransactions = asyncHandler(async (req, res) => {
       limit,
       total,
       pages: Math.ceil(total / limit)
+    },
+    totals: {
+      totalSales,
+      totalPurchases,
+      totalRevenue
     }
   }, "Transactions retrieved successfully"));
 });

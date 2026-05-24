@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from './Button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+export const Pagination = ({ currentPage, totalPages, onPageChange, isLoading = false }) => {
   const getVisiblePages = () => {
     const pages = [];
     if (totalPages <= 5) {
@@ -30,29 +30,36 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   const visiblePages = getVisiblePages();
 
   return (
-    <div className="flex items-center justify-between mt-6">
+    <div className="flex items-center justify-center sm:justify-between mt-8 gap-4">
       <Button
         variant="secondary"
         size="sm"
         onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="flex items-center gap-2"
+        disabled={currentPage === 1 || isLoading}
+        className="flex items-center gap-2 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
         <ChevronLeft className="w-4 h-4" />
         <span className="hidden sm:inline">Previous</span>
       </Button>
       
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         {visiblePages.map((page) => (
-          <Button
+          <button
             key={page}
-            variant={page === currentPage ? 'primary' : 'secondary'}
-            size="sm"
             onClick={() => onPageChange(page)}
-            className={page === currentPage ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
+            disabled={isLoading}
+            className={`
+              w-10 h-10 rounded-lg font-semibold transition-all duration-300
+              flex items-center justify-center
+              ${page === currentPage 
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/40 scale-110' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+              }
+              ${isLoading ? 'pointer-events-none' : ''}
+            `}
           >
             {page}
-          </Button>
+          </button>
         ))}
       </div>
       
@@ -60,8 +67,8 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         variant="secondary"
         size="sm"
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="flex items-center gap-2"
+        disabled={currentPage === totalPages || isLoading}
+        className="flex items-center gap-2 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
         <span className="hidden sm:inline">Next</span>
         <ChevronRight className="w-4 h-4" />

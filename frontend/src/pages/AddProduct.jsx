@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from 'react-query';
+import { useMutation, useQueryClient, useQuery } from 'react-query';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
+import { ImageCropper } from '../components/ui/ImageCropper';
 import { createProduct } from '../services/product.api';
+import { getCategories } from '../services/category.api';
 import { toast } from 'react-toastify';
 import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 
@@ -18,8 +20,12 @@ export const AddProduct = () => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImage, setTempImage] = useState(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  
+  const { data: categories } = useQuery('categories', getCategories);
 
   const mutation = useMutation(createProduct, {
     onSuccess: () => {
@@ -35,9 +41,16 @@ export const AddProduct = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      setTempImage(URL.createObjectURL(file));
+      setShowCropper(true);
     }
+  };
+  
+  const handleCropComplete = (croppedFile) => {
+    setImageFile(croppedFile);
+    setImagePreview(URL.createObjectURL(croppedFile));
+    setShowCropper(false);
+    setTempImage(null);
   };
 
   const handleSubmit = async (e) => {
@@ -78,12 +91,22 @@ export const AddProduct = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
-          <Input
-            label="Category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            required
-          />
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Category</option>
+              {categories?.data?.map((category) => (
+                <option key={category._id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-1 gap-4">
             <Input
               label="Stock Quantity"
@@ -151,6 +174,18 @@ export const AddProduct = () => {
           </div>
         </form>
       </Card>
+      
+      {showCropper && tempImage && (
+        <ImageCropper
+          image={tempImage}
+          onCancel={() => {
+            setShowCropper(false);
+            setTempImage(null);
+          }}
+          onCropComplete={handleCropComplete}
+          aspect={1}
+        />
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Table, TableHead, TableBody, TableRow, TableCell, TableHeader } from '../components/ui/Table';
@@ -9,7 +9,9 @@ import { Pagination } from '../components/ui/Pagination';
 import { Modal } from '../components/ui/Modal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Input } from '../components/ui/Input';
+import { ImageCropper } from '../components/ui/ImageCropper';
 import { getProducts, deleteProduct, updateProduct } from '../services/product.api';
+import { getCategories } from '../services/category.api';
 import { getStatusColor } from '../utils/helpers';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -23,24 +25,31 @@ export const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [deletingProductId, setDeletingProductId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImage, setTempImage] = useState(null);
+  const [editImageFile, setEditImageFile] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = searchParams.get('category') || '';
   const queryClient = useQueryClient();
   const { searchQuery } = useSearch();
   
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategory]);
   
-  const { data: products, isLoading } = useQuery(
-    ['products', currentPage, searchQuery],
-    () => getProducts({ page: currentPage, limit: 10, search: searchQuery }),
+  const { data: products, isLoading, isFetching } = useQuery(
+    ['products', currentPage, searchQuery, selectedCategory],
+    () => getProducts({ page: currentPage, limit: 10, search: searchQuery, category: selectedCategory }),
     {
       keepPreviousData: true
     }
   );
+  
+  const { data: categories } = useQuery('categories', getCategories);
 
   const deleteMutation = useMutation(deleteProduct, {
     onSuccess: () => {
-      queryClient.invalidateQueries(['products', currentPage, searchQuery]);
+      queryClient.invalidateQueries(['products', currentPage, searchQuery, selectedCategory]);
       toast.success('Product deleted successfully');
     },
     onError: () => {
@@ -52,8 +61,9 @@ export const Products = () => {
     ({ id, data }) => updateProduct(id, data),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(['products', currentPage, searchQuery]);
+        queryClient.invalidateQueries(['products', currentPage, searchQuery, selectedCategory]);
         setEditModalOpen(false);
+        setEditImageFile(null);
         toast.success('Product updated successfully');
       },
       onError: () => {
@@ -64,12 +74,40 @@ export const Products = () => {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
+    setEditImageFile(null);
     setEditModalOpen(true);
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    updateMutation.mutate({ id: editingProduct._id, data: editingProduct });
+    
+    const formData = new FormData();
+    formData.append('name', editingProduct.name);
+    formData.append('category', editingProduct.category);
+    formData.append('stockQuantity', editingProduct.stockQuantity);
+    formData.append('supplier', editingProduct.supplier || '');
+    
+    if (editImageFile) {
+      formData.append('image', editImageFile);
+    } else if (editingProduct.image === '') {
+      formData.append('image', '');
+    }
+    
+    updateMutation.mutate({ id: editingProduct._id, data: formData });
+  };
+  
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setTempImage(URL.createObjectURL(file));
+      setShowCropper(true);
+    }
+  };
+  
+  const handleEditCropComplete = (croppedFile) => {
+    setEditImageFile(croppedFile);
+    setShowCropper(false);
+    setTempImage(null);
   };
 
   const handleDelete = (id) => {
@@ -127,9 +165,40 @@ export const Products = () => {
         </Link>
       </div>
       
-      <Card className="p-4 md:p-6">
+      {categories?.data?.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant={selectedCategory === '' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setSearchParams({})}
+          >
+            All
+          </Button>
+          {categories?.data?.map((category) => (
+            <Button
+              key={category._id}
+              variant={selectedCategory === category.name ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSearchParams({ category: category.name })}
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
+      )}
+      
+      <Card className="p-4 md:p-6 relative">
+        {isFetching && !isLoading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+              <span className="text-sm text-gray-600">Loading...</span>
+            </div>
+          </div>
+        )}
+        
         {/* Desktop Table */}
-        <div className="hidden md:block">
+        <div className={`hidden md:block transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
           <Table>
             <TableHead>
               <TableRow>
@@ -187,7 +256,7 @@ export const Products = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden space-y-4">
+        <div className={`md:hidden space-y-4 transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
           {products?.data?.data?.map((product) => (
             <Card key={product._id} className="p-4 space-y-3">
               <div className="flex gap-3 items-center">
@@ -244,6 +313,7 @@ export const Products = () => {
             currentPage={currentPage}
             totalPages={products.data.pagination.pages}
             onPageChange={setCurrentPage}
+            isLoading={isFetching || isLoading}
           />
         )}
       </Card>
@@ -261,12 +331,22 @@ export const Products = () => {
               onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
               required
             />
-            <Input
-              label="Category"
-              value={editingProduct.category}
-              onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
-              required
-            />
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                value={editingProduct.category}
+                onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Category</option>
+                {categories?.data?.map((category) => (
+                  <option key={category._id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Input
               label="Stock Quantity"
               type="number"
@@ -279,6 +359,42 @@ export const Products = () => {
               value={editingProduct.supplier || ''}
               onChange={(e) => setEditingProduct({ ...editingProduct, supplier: e.target.value })}
             />
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Product Image</label>
+              {editImageFile || editingProduct.image ? (
+                <div className="flex items-center gap-4">
+                  <img
+                    src={editImageFile ? URL.createObjectURL(editImageFile) : editingProduct.image}
+                    alt="Preview"
+                    className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setEditImageFile(null);
+                      setEditingProduct({ ...editingProduct, image: '' });
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                  <div className="text-center">
+                    <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleEditImageChange}
+                  />
+                </label>
+              )}
+            </div>
             <div className="flex justify-end gap-3">
               <Button type="button" variant="secondary" onClick={() => setEditModalOpen(false)}>
                 Cancel
@@ -318,6 +434,18 @@ export const Products = () => {
         confirmVariant="danger"
         isLoading={deleteMutation.isLoading}
       />
+      
+      {showCropper && tempImage && (
+        <ImageCropper
+          image={tempImage}
+          onCancel={() => {
+            setShowCropper(false);
+            setTempImage(null);
+          }}
+          onCropComplete={handleEditCropComplete}
+          aspect={1}
+        />
+      )}
     </div>
   );
 };
