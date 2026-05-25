@@ -31,6 +31,17 @@ export const Pagination = ({ currentPage, totalPages, onPageChange, isLoading = 
 
   return (
     <div className="flex items-center justify-center sm:justify-between mt-8 gap-4">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[2px] pointer-events-none">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-20 h-20 rounded-full bg-blue-500/15 animate-ping"></div>
+            <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-white/90 shadow-2xl shadow-blue-500/30 ring-1 ring-blue-100">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          </div>
+        </div>
+      )}
+
       <Button
         variant="secondary"
         size="sm"
@@ -58,11 +69,7 @@ export const Pagination = ({ currentPage, totalPages, onPageChange, isLoading = 
               ${isLoading ? 'pointer-events-none' : ''}
             `}
           >
-            {isLoading && page === currentPage ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              page
-            )}
+            {page}
           </button>
         ))}
       </div>
