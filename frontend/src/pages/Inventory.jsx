@@ -15,7 +15,7 @@ export const Inventory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { searchQuery } = useSearch();
   
-  const { data: products, isLoading } = useQuery(
+  const { data: products, isLoading, isFetching } = useQuery(
     ['inventory', currentPage, searchQuery],
     () => getProducts({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -153,7 +153,7 @@ export const Inventory = () => {
             currentPage={currentPage}
             totalPages={products.data.pagination.pages}
             onPageChange={setCurrentPage}
-            isLoading={isLoading}
+            isLoading={isFetching}
           />
         )}
       </Card>

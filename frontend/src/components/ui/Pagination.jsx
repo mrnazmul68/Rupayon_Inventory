@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from './Button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export const Pagination = ({ currentPage, totalPages, onPageChange, isLoading = false }) => {
   const getVisiblePages = () => {
@@ -58,7 +58,11 @@ export const Pagination = ({ currentPage, totalPages, onPageChange, isLoading = 
               ${isLoading ? 'pointer-events-none' : ''}
             `}
           >
-            {page}
+            {isLoading && page === currentPage ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              page
+            )}
           </button>
         ))}
       </div>

@@ -23,7 +23,7 @@ export const Users = () => {
   const { user: currentUser } = useAuth();
   const { searchQuery } = useSearch();
 
-  const { data: users, isLoading } = useQuery(
+  const { data: users, isLoading, isFetching } = useQuery(
     ['users', currentPage, searchQuery],
     () => getUsers({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -321,7 +321,7 @@ export const Users = () => {
             currentPage={currentPage}
             totalPages={users.data.pagination.pages}
             onPageChange={setCurrentPage}
-            isLoading={isLoading}
+            isLoading={isFetching}
           />
         )}
       </Card>

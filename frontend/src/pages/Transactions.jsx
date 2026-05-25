@@ -29,7 +29,7 @@ export const Transactions = () => {
     setCurrentPage(1);
   }, [searchQuery]);
   
-  const { data: transactions, isLoading } = useQuery(
+  const { data: transactions, isLoading, isFetching } = useQuery(
     ['transactions', currentPage, searchQuery],
     () => getTransactions({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -300,7 +300,7 @@ export const Transactions = () => {
           currentPage={currentPage}
           totalPages={transactions.data.pagination.pages}
           onPageChange={setCurrentPage}
-          isLoading={isLoading}
+          isLoading={isFetching}
         />
       )}
 

@@ -37,7 +37,7 @@ export const Products = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
   
-  const { data: products, isLoading } = useQuery(
+  const { data: products, isLoading, isFetching } = useQuery(
     ['products', currentPage, searchQuery, selectedCategory],
     () => getProducts({ page: currentPage, limit: 10, search: searchQuery, category: selectedCategory }),
     {
@@ -304,7 +304,7 @@ export const Products = () => {
             currentPage={currentPage}
             totalPages={products.data.pagination.pages}
             onPageChange={setCurrentPage}
-            isLoading={isLoading}
+            isLoading={isFetching}
           />
         )}
       </Card>
