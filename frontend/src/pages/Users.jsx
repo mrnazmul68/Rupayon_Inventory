@@ -48,6 +48,8 @@ export const Users = () => {
   const deleteMutation = useMutation(deleteUser, {
     onSuccess: () => {
       queryClient.invalidateQueries(['users', currentPage, searchQuery]);
+      setConfirmModalOpen(false);
+      setDeletingUserId(null);
       toast.success('User deleted successfully');
     },
     onError: () => {
@@ -97,8 +99,6 @@ export const Users = () => {
   const confirmDelete = () => {
     if (deletingUserId) {
       deleteMutation.mutate(deletingUserId);
-      setConfirmModalOpen(false);
-      setDeletingUserId(null);
     }
   };
 
@@ -374,7 +374,7 @@ export const Users = () => {
         onConfirm={confirmDelete}
         title="Delete User"
         message="Are you sure you want to delete this user?"
-        confirmText="Delete"
+        confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
         confirmVariant="danger"
         isLoading={deleteMutation.isLoading}
       />

@@ -40,6 +40,8 @@ export const Transactions = () => {
   const deleteMutation = useMutation(deleteTransaction, {
     onSuccess: () => {
       queryClient.invalidateQueries(['transactions', currentPage, searchQuery]);
+      setConfirmModalOpen(false);
+      setDeletingTransactionId(null);
       toast.success('Transaction deleted successfully');
     },
     onError: () => {
@@ -55,8 +57,6 @@ export const Transactions = () => {
   const confirmDelete = () => {
     if (deletingTransactionId) {
       deleteMutation.mutate(deletingTransactionId);
-      setConfirmModalOpen(false);
-      setDeletingTransactionId(null);
     }
   };
 
@@ -327,7 +327,7 @@ export const Transactions = () => {
         onConfirm={confirmDelete}
         title="Delete Transaction"
         message="Are you sure you want to delete this transaction?"
-        confirmText="Delete"
+        confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
         confirmVariant="danger"
         isLoading={deleteMutation.isLoading}
       />

@@ -50,6 +50,8 @@ export const Products = () => {
   const deleteMutation = useMutation(deleteProduct, {
     onSuccess: () => {
       queryClient.invalidateQueries(['products', currentPage, searchQuery, selectedCategory]);
+      setConfirmModalOpen(false);
+      setDeletingProductId(null);
       toast.success('Product deleted successfully');
     },
     onError: () => {
@@ -118,8 +120,6 @@ export const Products = () => {
   const confirmDelete = () => {
     if (deletingProductId) {
       deleteMutation.mutate(deletingProductId);
-      setConfirmModalOpen(false);
-      setDeletingProductId(null);
     }
   };
 
@@ -421,7 +421,7 @@ export const Products = () => {
         onConfirm={confirmDelete}
         title="Delete Product"
         message="Are you sure you want to delete this product?"
-        confirmText="Delete"
+        confirmText={deleteMutation.isLoading ? 'Deleting...' : 'Delete'}
         confirmVariant="danger"
         isLoading={deleteMutation.isLoading}
       />
