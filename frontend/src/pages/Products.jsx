@@ -37,7 +37,7 @@ export const Products = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
   
-  const { data: products, isLoading, isFetching } = useQuery(
+  const { data: products, isLoading } = useQuery(
     ['products', currentPage, searchQuery, selectedCategory],
     () => getProducts({ page: currentPage, limit: 10, search: searchQuery, category: selectedCategory }),
     {
@@ -123,7 +123,7 @@ export const Products = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !products) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -134,9 +134,9 @@ export const Products = () => {
         <Card className="p-4 md:p-6">
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
+              <div key={i} className="flex flex-wrap items-center gap-3 md:gap-4">
                 <Skeleton className="w-12 h-12 rounded-lg hidden sm:block" />
-                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-28 sm:w-32" />
                 <Skeleton className="h-4 w-24 hidden md:block" />
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-4 w-12 hidden sm:block" />
@@ -157,8 +157,8 @@ export const Products = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <Link to="/add-product">
-          <Button>
+        <Link to="/add-product" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Add Product
           </Button>
@@ -166,7 +166,7 @@ export const Products = () => {
       </div>
       
       {categories?.data?.length > 0 && (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <Button
             variant={selectedCategory === '' ? 'primary' : 'secondary'}
             size="sm"
@@ -187,18 +187,9 @@ export const Products = () => {
         </div>
       )}
       
-      <Card className="p-4 md:p-6 relative">
-        {isFetching && !isLoading && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">Loading...</span>
-            </div>
-          </div>
-        )}
-        
+      <Card className="p-4 md:p-6 relative overflow-hidden">
         {/* Desktop Table */}
-        <div className={`hidden md:block transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="hidden md:block transition-all duration-300">
           <Table>
             <TableHead>
               <TableRow>
@@ -231,8 +222,8 @@ export const Products = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell className="font-medium max-w-[220px] truncate">{product.name}</TableCell>
+                  <TableCell className="max-w-[180px] truncate">{product.category}</TableCell>
                   <TableCell>{product.stockQuantity}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
@@ -256,7 +247,7 @@ export const Products = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className={`md:hidden space-y-4 transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="md:hidden space-y-4 transition-all duration-300">
           {products?.data?.data?.map((product) => (
             <Card key={product._id} className="p-4 space-y-3">
               <div className="flex gap-3 items-center">
@@ -277,9 +268,9 @@ export const Products = () => {
                   </div>
                 )}
 
-                <div>
-                  <h2 className="font-semibold">{product.name}</h2>
-                  <p className="text-sm text-gray-500">{product.category}</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-semibold break-words">{product.name}</h2>
+                  <p className="text-sm text-gray-500 break-words">{product.category}</p>
                 </div>
               </div>
 
@@ -296,7 +287,7 @@ export const Products = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
                 <Button variant="secondary" size="sm" onClick={() => handleEdit(product)}>
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -313,7 +304,7 @@ export const Products = () => {
             currentPage={currentPage}
             totalPages={products.data.pagination.pages}
             onPageChange={setCurrentPage}
-            isLoading={isFetching || isLoading}
+            isLoading={isLoading}
           />
         )}
       </Card>

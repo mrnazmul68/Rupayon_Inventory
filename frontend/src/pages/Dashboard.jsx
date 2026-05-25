@@ -16,7 +16,10 @@ export const Dashboard = () => {
   const { data: products, isLoading: productsLoading } = useQuery('allProducts', getAllProducts);
   const { data: transactions, isLoading: transactionsLoading } = useQuery('allTransactions', getAllTransactions);
   
-  const isLoading = statsLoading || productsLoading || transactionsLoading;
+  const isLoading =
+    (statsLoading && !stats) ||
+    (productsLoading && !products) ||
+    (transactionsLoading && !transactions);
 
   // Calculate total revenue for current month (only sales count as revenue)
   const currentMonth = new Date().getMonth();
@@ -150,47 +153,85 @@ export const Dashboard = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-6 w-16" />
-                <Skeleton className="h-4 w-12 hidden sm:block" />
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-24 hidden md:block" />
-                <Skeleton className="h-4 w-20 hidden sm:block" />
+              <div key={i} className="rounded-lg border border-gray-100 p-3 md:border-0 md:p-0">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4">
+                  <Skeleton className="h-4 w-28 sm:w-32" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-4 w-12 hidden sm:block" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24 hidden md:block" />
+                  <Skeleton className="h-4 w-20 hidden sm:block" />
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Product</TableHeader>
-                <TableHeader>Type</TableHeader>
-                <TableHeader className="hidden sm:table-cell">Quantity</TableHeader>
-                <TableHeader>Total</TableHeader>
-                <TableHeader className="hidden md:table-cell">User</TableHeader>
-                <TableHeader className="hidden sm:table-cell">Date</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeader>Product</TableHeader>
+                    <TableHeader>Type</TableHeader>
+                    <TableHeader>Quantity</TableHeader>
+                    <TableHeader>Total</TableHeader>
+                    <TableHeader>User</TableHeader>
+                    <TableHeader>Date</TableHeader>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {transactions?.data?.slice(0, 5).map((transaction) => (
+                    <TableRow key={transaction._id}>
+                      <TableCell className="max-w-[220px] truncate">{transaction.productName}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          transaction.type === 'sale' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {transaction.type}
+                        </span>
+                      </TableCell>
+                      <TableCell>{transaction.quantity}</TableCell>
+                      <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
+                      <TableCell className="max-w-[180px] truncate">{transaction.performedByName}</TableCell>
+                      <TableCell>{formatDate(transaction.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="md:hidden space-y-3">
               {transactions?.data?.slice(0, 5).map((transaction) => (
-                <TableRow key={transaction._id}>
-                  <TableCell>{transaction.productName}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                <div key={transaction._id} className="rounded-lg border border-gray-100 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 break-words">{transaction.productName}</p>
+                      <p className="mt-1 text-xs text-gray-500 break-words">{transaction.performedByName}</p>
+                    </div>
+                    <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${
                       transaction.type === 'sale' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
                     }`}>
                       {transaction.type}
                     </span>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">{transaction.quantity}</TableCell>
-                  <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{transaction.performedByName}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{formatDate(transaction.createdAt)}</TableCell>
-                </TableRow>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-gray-100 pt-3 text-sm">
+                    <div>
+                      <span className="block text-xs text-gray-500">Qty</span>
+                      <span className="font-medium text-gray-900">{transaction.quantity}</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-gray-500">Total</span>
+                      <span className="font-medium text-gray-900">{formatCurrency(transaction.totalPrice)}</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-gray-500">Date</span>
+                      <span className="font-medium text-gray-900">{formatDate(transaction.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          </>
         )}
       </Card>
     </div>

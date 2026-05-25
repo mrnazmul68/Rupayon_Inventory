@@ -23,7 +23,7 @@ export const Users = () => {
   const { user: currentUser } = useAuth();
   const { searchQuery } = useSearch();
 
-  const { data: users, isLoading, isFetching } = useQuery(
+  const { data: users, isLoading } = useQuery(
     ['users', currentPage, searchQuery],
     () => getUsers({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -110,15 +110,15 @@ export const Users = () => {
     rejectMutation.mutate(id);
   };
 
-  if (isLoading) {
+  if (isLoading && !users) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Users</h1>
         <Card className="p-4 md:p-6">
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-4 w-32" />
+              <div key={i} className="flex flex-wrap items-center gap-3 md:gap-4">
+                <Skeleton className="h-4 w-28 sm:w-32" />
                 <Skeleton className="h-4 w-48 hidden md:block" />
                 <Skeleton className="h-6 w-20 rounded-full hidden sm:block" />
                 <Skeleton className="h-6 w-24 rounded-full hidden sm:block" />
@@ -163,18 +163,9 @@ export const Users = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Users</h1>
       
-      <Card className="p-4 md:p-6 relative">
-        {isFetching && !isLoading && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">Loading...</span>
-            </div>
-          </div>
-        )}
-        
+      <Card className="p-4 md:p-6 relative overflow-hidden">
         {/* Desktop Table */}
-        <div className={`hidden md:block transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="hidden md:block transition-all duration-300">
           <Table>
             <TableHead>
               <TableRow>
@@ -188,8 +179,8 @@ export const Users = () => {
             <TableBody>
               {users?.data?.data?.map((user) => (
                 <TableRow key={user._id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="font-medium max-w-[180px] truncate">{user.name}</TableCell>
+                  <TableCell className="max-w-[240px] truncate">{user.email}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       user.role === 'admin' 
@@ -253,15 +244,15 @@ export const Users = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className={`md:hidden space-y-4 transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="md:hidden space-y-4 transition-all duration-300">
           {users?.data?.data?.map((user) => (
             <Card key={user._id} className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-semibold">{user.name}</h2>
-                  <p className="text-sm text-gray-500">{user.email}</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <h2 className="font-semibold break-words">{user.name}</h2>
+                  <p className="text-sm text-gray-500 break-words">{user.email}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {user.status === 'pending' && (
                     <>
                       <Button 
@@ -330,7 +321,7 @@ export const Users = () => {
             currentPage={currentPage}
             totalPages={users.data.pagination.pages}
             onPageChange={setCurrentPage}
-            isLoading={isFetching || isLoading}
+            isLoading={isLoading}
           />
         )}
       </Card>

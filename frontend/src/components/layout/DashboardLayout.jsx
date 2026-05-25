@@ -48,13 +48,13 @@ export const DashboardLayout = ({ children }) => {
       <NotificationContext.Provider value={{ notificationsData, unreadCount, notificationsOpen, setNotificationsOpen, refreshNotifications }}>
         <div className="flex min-h-screen bg-gray-50">
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-          <div className="flex-1 flex flex-col">
+          <div className="min-w-0 flex-1 flex flex-col">
             <Navbar 
               onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
             />
-            <main className="flex-1 p-4 md:p-6 overflow-y-auto">{children}</main>
+            <main className="min-w-0 flex-1 p-4 md:p-6 overflow-y-auto">{children}</main>
           </div>
         </div>
       </NotificationContext.Provider>

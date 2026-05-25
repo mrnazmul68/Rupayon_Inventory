@@ -15,7 +15,7 @@ export const Inventory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { searchQuery } = useSearch();
   
-  const { data: products, isLoading, isFetching } = useQuery(
+  const { data: products, isLoading } = useQuery(
     ['inventory', currentPage, searchQuery],
     () => getProducts({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -23,7 +23,7 @@ export const Inventory = () => {
     }
   );
 
-  if (isLoading) {
+  if (isLoading && !products) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
@@ -31,9 +31,9 @@ export const Inventory = () => {
         <Card className="p-4 md:p-6">
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
+              <div key={i} className="flex flex-wrap items-center gap-3 md:gap-4">
                 <Skeleton className="w-12 h-12 rounded-lg hidden sm:block" />
-                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-28 sm:w-32" />
                 <Skeleton className="h-4 w-24 hidden md:block" />
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-6 w-20 rounded-full hidden sm:block" />
@@ -50,18 +50,9 @@ export const Inventory = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
       
-      <Card className="p-4 md:p-6 relative">
-        {isFetching && !isLoading && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">Loading...</span>
-            </div>
-          </div>
-        )}
-        
+      <Card className="p-4 md:p-6 relative overflow-hidden">
         {/* Desktop Table */}
-        <div className={`hidden md:block transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="hidden md:block transition-all duration-300">
           <Table>
             <TableHead>
               <TableRow>
@@ -94,8 +85,8 @@ export const Inventory = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell className="font-medium max-w-[220px] truncate">{product.name}</TableCell>
+                  <TableCell className="max-w-[180px] truncate">{product.category}</TableCell>
                   <TableCell>{product.stockQuantity}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
@@ -110,7 +101,7 @@ export const Inventory = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className={`md:hidden space-y-4 transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="md:hidden space-y-4 transition-all duration-300">
           {products?.data?.data?.map((product) => (
             <Card key={product._id} className="p-4 space-y-3">
               <div className="flex gap-3 items-center">
@@ -131,9 +122,9 @@ export const Inventory = () => {
                   </div>
                 )}
 
-                <div>
-                  <h2 className="font-semibold">{product.name}</h2>
-                  <p className="text-sm text-gray-500">{product.category}</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-semibold break-words">{product.name}</h2>
+                  <p className="text-sm text-gray-500 break-words">{product.category}</p>
                 </div>
               </div>
 
@@ -162,7 +153,7 @@ export const Inventory = () => {
             currentPage={currentPage}
             totalPages={products.data.pagination.pages}
             onPageChange={setCurrentPage}
-            isLoading={isFetching || isLoading}
+            isLoading={isLoading}
           />
         )}
       </Card>

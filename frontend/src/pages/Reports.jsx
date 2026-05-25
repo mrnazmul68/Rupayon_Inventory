@@ -20,7 +20,10 @@ export const Reports = () => {
   const { data: products, isLoading: productsLoading } = useQuery('allProducts', getAllProducts);
   const { data: transactions, isLoading: transactionsLoading } = useQuery('allTransactions', getAllTransactions);
   
-  const isLoading = dailyStatsLoading || productsLoading || transactionsLoading;
+  const isLoading =
+    (dailyStatsLoading && !dailyStats) ||
+    (productsLoading && !products) ||
+    (transactionsLoading && !transactions);
 
   // Prepare daily sales data for SalesChart
   const getDailySalesData = () => {
@@ -53,7 +56,7 @@ export const Reports = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
         <Card className="p-4 md:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Analytics</h3>
           {isLoading ? (
@@ -78,8 +81,8 @@ export const Reports = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-4 w-48" />
+              <div key={i} className="flex flex-wrap items-center gap-3 md:gap-4">
+                <Skeleton className="h-4 w-36 sm:w-48" />
                 <Skeleton className="h-4 w-32 hidden md:block" />
                 <Skeleton className="h-4 w-32 hidden md:block" />
                 <Skeleton className="h-4 w-32" />
@@ -106,7 +109,7 @@ export const Reports = () => {
                 <TableBody>
                   {dailyStats?.data?.map((stat) => (
                     <TableRow key={stat.date}>
-                      <TableCell className="font-medium">{formatDate(stat.date)}</TableCell>
+                      <TableCell className="font-medium max-w-[280px] truncate">{formatDate(stat.date)}</TableCell>
                       <TableCell className="text-red-600">{formatCurrency(stat.totalSales)}</TableCell>
                       <TableCell className="text-green-600">{formatCurrency(stat.totalPurchases)}</TableCell>
                       <TableCell className="text-purple-600 font-semibold">{formatCurrency(stat.totalRevenue)}</TableCell>
@@ -120,8 +123,8 @@ export const Reports = () => {
             <div className="md:hidden space-y-4">
               {dailyStats?.data?.map((stat) => (
                 <Card key={stat.date} className="p-4 space-y-3">
-                  <h4 className="font-semibold text-gray-900">{formatDate(stat.date)}</h4>
-                  <div className="grid grid-cols-2 gap-y-2 pt-2 border-t border-gray-100 text-sm">
+                  <h4 className="font-semibold text-gray-900 break-words">{formatDate(stat.date)}</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-3 pt-2 border-t border-gray-100 text-sm">
                     <div>
                       <span className="text-gray-500 block text-xs">Total Sales</span>
                       <span className="font-medium text-red-600">{formatCurrency(stat.totalSales)}</span>
@@ -130,7 +133,7 @@ export const Reports = () => {
                       <span className="text-gray-500 block text-xs">Total Purchases</span>
                       <span className="font-medium text-green-600">{formatCurrency(stat.totalPurchases)}</span>
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <span className="text-gray-500 block text-xs">Total Revenue</span>
                       <span className="font-semibold text-purple-600">{formatCurrency(stat.totalRevenue)}</span>
                     </div>

@@ -29,7 +29,7 @@ export const Transactions = () => {
     setCurrentPage(1);
   }, [searchQuery]);
   
-  const { data: transactions, isLoading, isFetching } = useQuery(
+  const { data: transactions, isLoading } = useQuery(
     ['transactions', currentPage, searchQuery],
     () => getTransactions({ page: currentPage, limit: 10, search: searchQuery }),
     {
@@ -81,13 +81,13 @@ export const Transactions = () => {
   
   const totals = transactions?.data?.totals || { totalSales: 0, totalPurchases: 0, totalRevenue: 0 };
 
-  if (isLoading) {
+  if (isLoading && !transactions) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
         
         {/* Totals Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="p-4 md:p-6">
               <Skeleton className="h-4 w-24 mb-2" />
@@ -101,9 +101,9 @@ export const Transactions = () => {
           <Skeleton className="h-6 w-48 mb-4" />
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
+              <div key={i} className="flex flex-wrap items-center gap-3 md:gap-4">
                 <Skeleton className="w-12 h-12 rounded-lg hidden sm:block" />
-                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-28 sm:w-32" />
                 <Skeleton className="h-6 w-16 rounded-full" />
                 <Skeleton className="h-4 w-12 hidden sm:block" />
                 <Skeleton className="h-4 w-24" />
@@ -123,33 +123,24 @@ export const Transactions = () => {
       <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
       
       {/* Totals Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+        <Card className="p-4 md:p-6">
           <p className="text-sm text-gray-500">Total Sales</p>
-          <p className="text-2xl font-bold text-red-600">{formatCurrency(totals.totalSales)}</p>
+          <p className="text-xl md:text-2xl font-bold text-red-600 break-words">{formatCurrency(totals.totalSales)}</p>
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6">
           <p className="text-sm text-gray-500">Total Purchases</p>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(totals.totalPurchases)}</p>
+          <p className="text-xl md:text-2xl font-bold text-green-600 break-words">{formatCurrency(totals.totalPurchases)}</p>
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 md:p-6 sm:col-span-2 xl:col-span-1">
           <p className="text-sm text-gray-500">Total Revenue</p>
-          <p className="text-2xl font-bold text-purple-600">{formatCurrency(totals.totalRevenue)}</p>
+          <p className="text-xl md:text-2xl font-bold text-purple-600 break-words">{formatCurrency(totals.totalRevenue)}</p>
         </Card>
       </div>
 
       {/* Grouped Transactions */}
       <div className="relative">
-        {isFetching && !isLoading && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 rounded-xl">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">Loading...</span>
-            </div>
-          </div>
-        )}
-        
-        <div className={`transition-all duration-300 ${isFetching ? 'pointer-events-none' : ''}`}>
+        <div className="space-y-4 transition-all duration-300">
           {Object.entries(groupedTransactions).map(([dateKey, dateTransactions]) => (
             <Card key={dateKey} className="p-4 md:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -193,7 +184,7 @@ export const Transactions = () => {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="font-medium">{transaction.productName}</TableCell>
+                        <TableCell className="font-medium max-w-[180px] truncate">{transaction.productName}</TableCell>
                         <TableCell>
                           {transaction.category ? (
                             <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -210,7 +201,7 @@ export const Transactions = () => {
                         </TableCell>
                         <TableCell>{transaction.quantity}</TableCell>
                         <TableCell>{formatCurrency(transaction.totalPrice)}</TableCell>
-                        <TableCell>{transaction.performedByName}</TableCell>
+                        <TableCell className="max-w-[160px] truncate">{transaction.performedByName}</TableCell>
                         <TableCell>{formatDate(transaction.createdAt)}</TableCell>
                         {currentUser?.role === 'admin' && (
                           <TableCell>
@@ -252,9 +243,9 @@ export const Transactions = () => {
                         </div>
                       )}
 
-                      <div className="flex-1">
-                        <h2 className="font-semibold">{transaction.productName}</h2>
-                        <div className="flex gap-2 mt-1">
+                      <div className="min-w-0 flex-1">
+                        <h2 className="font-semibold break-words">{transaction.productName}</h2>
+                        <div className="flex flex-wrap gap-2 mt-1">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getTransactionTypeColor(transaction.type)}`}>
                             {transaction.type}
                           </span>
@@ -287,9 +278,9 @@ export const Transactions = () => {
                         <span className="text-gray-500 block text-xs">Total</span>
                         <span className="font-bold text-gray-900">{formatCurrency(transaction.totalPrice)}</span>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <span className="text-gray-500 block text-xs">User</span>
-                        <span className="font-medium text-gray-900">{transaction.performedByName}</span>
+                        <span className="font-medium text-gray-900 break-words">{transaction.performedByName}</span>
                       </div>
                       <div>
                         <span className="text-gray-500 block text-xs">Date</span>
@@ -309,7 +300,7 @@ export const Transactions = () => {
           currentPage={currentPage}
           totalPages={transactions.data.pagination.pages}
           onPageChange={setCurrentPage}
-          isLoading={isFetching || isLoading}
+          isLoading={isLoading}
         />
       )}
 
