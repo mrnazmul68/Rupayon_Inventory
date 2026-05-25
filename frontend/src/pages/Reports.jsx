@@ -51,6 +51,9 @@ export const Reports = () => {
 
   const dailySalesData = getDailySalesData();
   const categoryData = getCategoryData();
+  const sortedDailyStats = [...(dailyStats?.data || [])].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 
   return (
     <div className="space-y-6">
@@ -107,7 +110,7 @@ export const Reports = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {dailyStats?.data?.map((stat) => (
+                  {sortedDailyStats.map((stat) => (
                     <TableRow key={stat.date}>
                       <TableCell className="font-medium max-w-[280px] truncate">{formatDate(stat.date)}</TableCell>
                       <TableCell className="text-red-600">{formatCurrency(stat.totalSales)}</TableCell>
@@ -121,7 +124,7 @@ export const Reports = () => {
             
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-              {dailyStats?.data?.map((stat) => (
+              {sortedDailyStats.map((stat) => (
                 <Card key={stat.date} className="p-4 space-y-3">
                   <h4 className="font-semibold text-gray-900 break-words">{formatDate(stat.date)}</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-3 pt-2 border-t border-gray-100 text-sm">
